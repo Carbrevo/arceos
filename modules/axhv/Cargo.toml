@@ -11,17 +11,18 @@ bitflags = "2.2"
 spin = "0.9"
 
 # System dependent modules provided by ArceOS.
-axstd = { workspace = true, features = [
-    "alloc",
-    "paging",
-    "fs",
-    "irq", # It has to be disabed in riscv64. Todo: fix it.
-    "hv",
-    "multitask",
-    # "sched_rr"
-] }
+#axstd = { workspace = true, features = [
+#    "alloc",
+#    "paging",
+#    "fs",
+#    "irq", # It has to be disabed in riscv64. Todo: fix it.
+#    "hv",
+#    "multitask",
+#    # "sched_rr"
+#] }
 
 # System dependent modules provided by ArceOS-Hypervisor.
+axstd = { workspace = true }
 axvm = { workspace = true }
 axvcpu = { workspace = true }
 axaddrspace = { workspace = true }

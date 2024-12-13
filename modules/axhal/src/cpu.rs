@@ -15,6 +15,7 @@ pub fn this_cpu_id() -> usize {
     CPU_ID.read_current()
 }
 
+
 /// Returns whether the current CPU is the primary CPU (aka the bootstrap
 /// processor or BSP)
 #[inline]
