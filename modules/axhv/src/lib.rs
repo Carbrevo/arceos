@@ -16,13 +16,13 @@ extern crate axstd as std;
 pub fn start_hv() {
     info!("Starting virtualization...");
 
-//    info!("Hardware support: {:?}", axvm::has_hardware_support());
+ //   info!("Hardware support: {:?}", axvm::has_hardware_support());
 
-    //hal::enable_virtualization();
+ //   hal::enable_virtualization();
 
-    //vmm::init();
+ //   vmm::init();
 
-    //vmm::start();
+ //   vmm::start();
 
     
     info!("VMM shutdown");
