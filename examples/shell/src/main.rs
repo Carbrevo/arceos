@@ -24,6 +24,7 @@ mod cmd;
 mod ramfs;
 
 use std::io::prelude::*;
+use axhv::start_hv;
 
 const LF: u8 = b'\n';
 const CR: u8 = b'\r';
@@ -50,6 +51,8 @@ fn main() {
     let mut cursor = 0;
     cmd::run_cmd("help".as_bytes());
     print_prompt();
+
+    start_hv();
 
     loop {
         if stdin.read(&mut buf[cursor..cursor + 1]).ok() != Some(1) {
