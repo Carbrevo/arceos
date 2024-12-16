@@ -28,7 +28,7 @@ axstd = { workspace = true, features = [
 ] }
 
 # System dependent modules provided by ArceOS-Hypervisor.
-#axvm = { workspace = true }
+axvm = { workspace = true }
 axvcpu = { workspace = true }
 axaddrspace = { workspace = true }
 
@@ -39,6 +39,7 @@ memory_addr = "0.3"
 page_table_entry = { version = "0.4.1", features = ["arm-el2"] }
 page_table_multiarch = "0.4.1"
 #percpu = { version = "0.1.4", features = ["arm-el2"] }
+percpu = { version = "0.1.4" }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86 = "0.52"

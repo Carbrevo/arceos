@@ -8,7 +8,7 @@ extern crate alloc;
 
 extern crate axstd as std;
 
-//mod hal;
+mod hal;
 //mod task;
 //mod vmm;
 
@@ -16,9 +16,9 @@ extern crate axstd as std;
 pub fn start_hv() {
     info!("Starting virtualization...");
 
- //   info!("Hardware support: {:?}", axvm::has_hardware_support());
+    info!("Hardware support: {:?}", axvm::has_hardware_support());
 
- //   hal::enable_virtualization();
+    hal::enable_virtualization();
 
  //   vmm::init();
 
