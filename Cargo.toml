@@ -16,8 +16,6 @@ members = [
     "modules/axsync",
     "modules/axtask",
     "modules/axhv",
-    "../axdemo",
-    "../axvm",
 
     "api/axfeat",
     "api/arceos_api",
@@ -66,7 +64,6 @@ axsync = { path = "modules/axsync" }
 axtask = { path = "modules/axtask" }
 axdma = { path = "modules/axdma" }
 axhv = { path = "modules/axhv" }
-axdemo = { path = "../axdemo" }
 
 axvm = { path = "../axvm" }
 axvcpu = { path = "../axvcpu" }
