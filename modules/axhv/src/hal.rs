@@ -83,10 +83,12 @@ pub(crate) fn enable_virtualization() {
             percpu
                 .init(this_cpu_id())
                 .expect("Failed to initialize percpu state");
+            info!("percpu init succ {}", cpu_id);
             percpu
                 .hardware_enable()
                 .expect("Failed to enable virtualization");
 
+            info!("percpu hardware_enable succ {}", cpu_id);
             info!("Hardware virtualization support enabled on core {}", cpu_id);
 
             let _ = CORES.fetch_add(1, Ordering::Release);
