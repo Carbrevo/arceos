@@ -11,6 +11,7 @@ use-ramfs = ["axstd/myfs", "dep:axfs_vfs", "dep:axfs_ramfs", "dep:crate_interfac
 default = []
 
 [dependencies]
+axfeat = { workspace = true, features = ["hv"] }
 axfs_vfs = { version = "0.1", optional = true }
 axfs_ramfs = { version = "0.1", optional = true }
 crate_interface = { version = "0.1", optional = true }
