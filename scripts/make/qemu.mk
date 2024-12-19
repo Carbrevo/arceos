@@ -67,6 +67,7 @@ ifeq ($(QEMU_LOG), y)
 endif
 
 qemu_args-debug := $(qemu_args-y) -s -S
+#qemu_args-debug := $(qemu_args-y) -s
 
 # Do not use KVM for debugging
 ifeq ($(shell uname), Darwin)

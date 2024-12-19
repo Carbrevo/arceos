@@ -180,11 +180,12 @@ justrun:
 debug: build
 	$(call run_qemu_debug) &
 	sleep 1
-	$(GDB) $(OUT_ELF) \
-	  -ex 'target remote localhost:1234' \
-	  -ex 'b _start' \
-	  -ex 'continue' \
-	  -ex 'disp /16i $$pc'
+#	$(GDB) $(OUT_BIN) \
+#	  -ex 'target remote localhost:1234'
+#	  -ex 'b _start' \
+#	  -ex 'continue' \
+#	  -ex 'disp /16i $$pc'
+#	$(GDB) $(OUT_ELF) \
 
 clippy:
 ifeq ($(origin ARCH), command line)
