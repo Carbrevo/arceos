@@ -133,15 +133,10 @@ unsafe extern "C" fn _start() -> ! {
     // X0 = dtb
     core::arch::asm!("
         // disable cache and MMU
+        mrs x1, currentel
         mrs x1, sctlr_el2
         bic x1, x1, #0xf
         msr sctlr_el2, x1
-
-        // cache_invalidate(0): clear dl1$
-        mov x0, #0
-        bl  {cache_invalidate}
-        mov x0, #2
-        bl  {cache_invalidate}
 
         mrs     x19, mpidr_el1
         and     x19, x19, #0xffffff     // get current CPU id
@@ -150,6 +145,12 @@ unsafe extern "C" fn _start() -> ! {
         adrp    x8, {boot_stack}        // setup boot stack
         add     x8, x8, {boot_stack_size}
         mov     sp, x8
+
+        // cache_invalidate(0): clear dl1$
+        mov x0, #0
+        bl  {cache_invalidate}
+        mov x0, #2
+        bl  {cache_invalidate}
 
         bl      {switch_to_el2}         // switch to EL2
         bl      {enable_fp}             // enable fp/neon

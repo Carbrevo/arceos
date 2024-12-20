@@ -21,7 +21,7 @@ qemu_args-riscv64 := \
 
 qemu_args-aarch64 := \
   -cpu cortex-a72 \
-  -machine virt \
+  -machine virt,gic-version=2,virtualization=on,secure=on \
   -kernel $(OUT_BIN)
 
 qemu_args-y := -m 2G -smp $(SMP) $(qemu_args-$(ARCH))

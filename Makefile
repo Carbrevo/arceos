@@ -180,8 +180,8 @@ justrun:
 debug: build
 	$(call run_qemu_debug) &
 	sleep 1
-#	$(GDB) $(OUT_BIN) \
-#	  -ex 'target remote localhost:1234'
+	$(GDB) $(OUT_BIN) \
+	  -ex 'target remote localhost:1234'
 #	  -ex 'b _start' \
 #	  -ex 'continue' \
 #	  -ex 'disp /16i $$pc'
