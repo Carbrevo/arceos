@@ -34,6 +34,14 @@ unsafe fn switch_to_el2() {
         ELR_EL3.set(LR.get());
         asm::eret();
     }
+
+    HCR_EL2.write(HCR_EL2::E2H::EnableOsAtEl2
+                + HCR_EL2::RW::EL1IsAarch64
+                + HCR_EL2::TGE::EnableTrapGeneralExceptionsToEl2
+                + HCR_EL2::AMO::EnableVirtualSError
+                + HCR_EL2::IMO::EnableVirtualIRQ
+                + HCR_EL2::FMO::EnableVirtualFIQ
+                + HCR_EL2::VM::Enable)
 }
 
 unsafe fn init_mmu_el2() {
@@ -48,7 +56,10 @@ unsafe fn init_mmu_el2() {
             + HCR_EL2::RW::EL1IsAarch64
             + HCR_EL2::IMO::EnableVirtualIRQ // Physical IRQ Routing.
             + HCR_EL2::FMO::EnableVirtualFIQ // Physical FIQ Routing.
-            + HCR_EL2::TSC::EnableTrapEl1SmcToEl2,
+            + HCR_EL2::TSC::EnableTrapEl1SmcToEl2
+            + HCR_EL2::E2H::EnableOsAtEl2
+            + HCR_EL2::TGE::EnableTrapGeneralExceptionsToEl2
+            + HCR_EL2::AMO::EnableVirtualSError
     );
 
     // Device-nGnRE memory
@@ -156,6 +167,9 @@ unsafe extern "C" fn _start() -> ! {
         bl      {enable_fp}             // enable fp/neon
         bl      {init_boot_page_table}
         bl      {init_mmu_el2}
+        MRS     X8, TCR_EL2
+        MRS     X8, TTBR0_EL2
+        MRS     X8, TTBR1_EL2
 
         mov     x8, {phys_virt_offset}  // set SP to the high address
         add     sp, sp, x8

@@ -20,7 +20,7 @@ qemu_args-riscv64 := \
   -kernel $(OUT_BIN)
 
 qemu_args-aarch64 := \
-  -cpu cortex-a72 \
+  -cpu cortex-a55 \
   -machine virt,gic-version=2,virtualization=on,secure=on \
   -kernel $(OUT_BIN)
 

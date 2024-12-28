@@ -70,6 +70,7 @@ axvcpu = { path = "../axvcpu" }
 axaddrspace = { git = "https://github.com/arceos-hypervisor/axaddrspace.git" }
 
 page_table_entry = { path = "../page_table_multiarch/page_table_entry" }
+aarch64-cpu = { path = "../aarch64-cpu" }
 
 [profile.release]
 lto = true
