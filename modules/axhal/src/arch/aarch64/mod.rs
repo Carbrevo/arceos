@@ -4,7 +4,7 @@ pub(crate) mod trap;
 use core::arch::asm;
 
 #[cfg(feature = "hv")]
-use aarch64_cpu::registers::{TTBR0_EL2, VBAR_EL2};
+use aarch64_cpu::registers::{TTBR0_EL2, TTBR1_EL2, VBAR_EL2};
 //Todo: remove this, when hv is enabled, `TTBR1_EL1` is not used.
 #[cfg_attr(feature = "hv", allow(unused_imports))]
 use aarch64_cpu::registers::{DAIF, TPIDR_EL0, TTBR0_EL1, TTBR1_EL1, VBAR_EL1};

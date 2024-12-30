@@ -27,3 +27,26 @@ pub(crate) unsafe fn init_boot_page_table(
         true,
     );
 }
+
+pub(crate) unsafe fn init_high_page_table(
+    boot_pt_l0: *mut [A64PTE; 512],
+    boot_pt_l1: *mut [A64PTE; 512],
+) {
+    let boot_pt_l0 = &mut *boot_pt_l0;
+    let boot_pt_l1 = &mut *boot_pt_l1;
+    // 0x0000_0000_0000 ~ 0x0080_0000_0000, table
+    boot_pt_l0[0] = A64PTE::new_table(pa!(boot_pt_l1.as_ptr() as usize));
+    // 0x0000_0000_0000..0x0000_4000_0000, 1G block, device memory
+    // 0xffff000040080000
+    boot_pt_l1[0] = A64PTE::new_page(
+        pa!(0),
+        MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
+        true,
+    );
+    // 0x0000_4000_0000..0x0000_8000_0000, 1G block, normal memory
+    boot_pt_l1[1] = A64PTE::new_page(
+        pa!(0x4000_0000),
+        MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+        true,
+    );
+}

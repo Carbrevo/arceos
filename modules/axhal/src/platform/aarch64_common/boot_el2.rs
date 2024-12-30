@@ -11,10 +11,12 @@ use axconfig::TASK_STACK_SIZE;
 static mut BOOT_STACK: [u8; TASK_STACK_SIZE] = [0; TASK_STACK_SIZE];
 
 #[link_section = ".data.boot_page_table"]
-static mut BOOT_PT_L0: [A64PTE; 512] = [A64PTE::empty(); 512];
+static mut BOOT_LPT_L0: [A64PTE; 512] = [A64PTE::empty(); 512];
+static mut BOOT_HPT_L0: [A64PTE; 512] = [A64PTE::empty(); 512];
 
-#[link_section = ".data.boot_page_table"]
-static mut BOOT_PT_L1: [A64PTE; 512] = [A64PTE::empty(); 512];
+#[link_section = ".data.high_page_table"]
+static mut BOOT_LPT_L1: [A64PTE; 512] = [A64PTE::empty(); 512];
+static mut BOOT_HPT_L1: [A64PTE; 512] = [A64PTE::empty(); 512];
 
 unsafe fn switch_to_el2() {
     SPSel.write(SPSel::SP::ELx);
@@ -52,7 +54,7 @@ unsafe fn init_mmu_el2() {
     // * Physical FIQ interrupts are taken to EL2;
     // * Virtual FIQ interrupts are enabled.
     HCR_EL2.modify(
-        HCR_EL2::VM::Enable
+        HCR_EL2::VM::Disable
             + HCR_EL2::RW::EL1IsAarch64
             + HCR_EL2::IMO::EnableVirtualIRQ // Physical IRQ Routing.
             + HCR_EL2::FMO::EnableVirtualFIQ // Physical FIQ Routing.
@@ -70,16 +72,21 @@ unsafe fn init_mmu_el2() {
     MAIR_EL2.write(attr0 + attr1); // 0xff_04
 
     // Enable TTBR0 and TTBR1 walks, page size = 4K, vaddr size = 48 bits, paddr size = 40 bits.
-    let tcr_flags0 = TCR_EL2::TG0::KiB_4
+    let tcr_flags0 = TCR_EL2::TG1::KiB_4
+        + TCR_EL2::TG0::KiB_4
         + TCR_EL2::SH0::Inner
         + TCR_EL2::ORGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
         + TCR_EL2::IRGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
+        + TCR_EL2::T1SZ.val(16)
         + TCR_EL2::T0SZ.val(16);
-    TCR_EL2.write(TCR_EL2::PS::Bits_40 + tcr_flags0);
+    TCR_EL2.write(TCR_EL2::IPS::Bits_40 + tcr_flags0);
     barrier::isb(barrier::SY);
 
-    let root_paddr = PhysAddr::from(BOOT_PT_L0.as_ptr() as usize).as_usize() as _;
-    TTBR0_EL2.set(root_paddr);
+    let root0_paddr = PhysAddr::from(BOOT_LPT_L0.as_ptr() as usize).as_usize() as _;
+    TTBR0_EL2.set(root0_paddr);
+
+    let root1_paddr = PhysAddr::from(BOOT_HPT_L1.as_ptr() as usize).as_usize() as _;
+    TTBR1_EL2.set(root1_paddr);
 
     // Flush the entire TLB
     crate::arch::flush_tlb(None);
@@ -97,7 +104,8 @@ unsafe fn enable_fp() {
 }
 
 unsafe fn init_boot_page_table() {
-    crate::platform::mem::init_boot_page_table(addr_of_mut!(BOOT_PT_L0), addr_of_mut!(BOOT_PT_L1));
+    crate::platform::mem::init_boot_page_table(addr_of_mut!(BOOT_LPT_L0), addr_of_mut!(BOOT_LPT_L1));
+    crate::platform::mem::init_high_page_table(addr_of_mut!(BOOT_HPT_L0), addr_of_mut!(BOOT_HPT_L1));
 }
 
 unsafe fn cache_invalidate(cache_level: usize) {
@@ -177,6 +185,8 @@ unsafe extern "C" fn _start() -> ! {
         mov     x0, x19                 // call rust_entry(cpu_id, dtb)
         mov     x1, x20
         ldr     x8, ={entry}
+        at      s1e2r, x8
+        mrs     x19, PAR_EL1
         blr     x8
         b      .",
         cache_invalidate = sym cache_invalidate,
