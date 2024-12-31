@@ -186,6 +186,7 @@ unsafe extern "C" fn _start() -> ! {
         mov     x1, x20
         ldr     x8, ={entry}
         at      s1e2r, x8
+        isb
         mrs     x19, PAR_EL1
         blr     x8
         b      .",

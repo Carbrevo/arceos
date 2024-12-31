@@ -19,9 +19,10 @@ qemu_args-riscv64 := \
   -bios default \
   -kernel $(OUT_BIN)
 
+  #-machine virt,gic-version=2,virtualization=on,secure=on
 qemu_args-aarch64 := \
   -cpu cortex-a55 \
-  -machine virt,gic-version=2,virtualization=on,secure=on \
+  -machine virt,gic-version=2,virtualization=on \
   -kernel $(OUT_BIN)
 
 qemu_args-y := -m 2G -smp $(SMP) $(qemu_args-$(ARCH))
