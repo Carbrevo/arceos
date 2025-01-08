@@ -74,8 +74,11 @@ unsafe fn init_mmu_el2() {
     // Enable TTBR0 and TTBR1 walks, page size = 4K, vaddr size = 48 bits, paddr size = 40 bits.
     let tcr_flags0 = TCR_EL2::TG1::KiB_4
         + TCR_EL2::TG0::KiB_4
+        + TCR_EL2::SH1::Inner
         + TCR_EL2::SH0::Inner
+        + TCR_EL2::ORGN1::WriteBack_ReadAlloc_WriteAlloc_Cacheable
         + TCR_EL2::ORGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
+        + TCR_EL2::IRGN1::WriteBack_ReadAlloc_WriteAlloc_Cacheable
         + TCR_EL2::IRGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
         + TCR_EL2::T1SZ.val(16)
         + TCR_EL2::T0SZ.val(16);
