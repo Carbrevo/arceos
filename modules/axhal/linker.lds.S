@@ -34,15 +34,6 @@ SECTIONS
         *(.got .got.*)
     }
 
-    .data : ALIGN(4K) {
-        _sdata = .;
-        *(.data.high_page_table)
-        . = ALIGN(4K);
-        *(.data .data.*)
-        *(.sdata .sdata.*)
-        *(.got .got.*)
-    }
-
     .tdata : ALIGN(0x10) {
         _stdata = .;
         *(.tdata .tdata.*)

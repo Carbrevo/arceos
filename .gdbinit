@@ -1,9 +1,15 @@
 define sid
 si
-if $argc == 1
-   disass/r $pc-$arg0, +0x50
+if $argc >= 1
+   disass/r $pc-$arg0, +0x40
 else
    disass/r $pc,+0x50
+end
+if $argc >= 2
+   p/z $arg1
+end
+if $argc >=3
+   p/z $arg2
 end
 end
 	

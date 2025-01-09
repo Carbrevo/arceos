@@ -154,6 +154,7 @@ pub fn init_drivers() -> AllDevices {
 
     let mut all_devs = AllDevices::default();
     all_devs.probe();
+    info!("  device probed: {}", "N/A");
 
     #[cfg(feature = "net")]
     {

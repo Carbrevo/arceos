@@ -12,10 +12,12 @@ static mut BOOT_STACK: [u8; TASK_STACK_SIZE] = [0; TASK_STACK_SIZE];
 
 #[link_section = ".data.boot_page_table"]
 static mut BOOT_LPT_L0: [A64PTE; 512] = [A64PTE::empty(); 512];
-static mut BOOT_HPT_L0: [A64PTE; 512] = [A64PTE::empty(); 512];
-
-#[link_section = ".data.high_page_table"]
+#[link_section = ".data.boot_page_table"]
 static mut BOOT_LPT_L1: [A64PTE; 512] = [A64PTE::empty(); 512];
+
+#[link_section = ".data.boot_page_table"]
+static mut BOOT_HPT_L0: [A64PTE; 512] = [A64PTE::empty(); 512];
+#[link_section = ".data.boot_page_table"]
 static mut BOOT_HPT_L1: [A64PTE; 512] = [A64PTE::empty(); 512];
 
 unsafe fn switch_to_el2() {
@@ -88,7 +90,7 @@ unsafe fn init_mmu_el2() {
     let root0_paddr = PhysAddr::from(BOOT_LPT_L0.as_ptr() as usize).as_usize() as _;
     TTBR0_EL2.set(root0_paddr);
 
-    let root1_paddr = PhysAddr::from(BOOT_HPT_L1.as_ptr() as usize).as_usize() as _;
+    let root1_paddr = PhysAddr::from(BOOT_HPT_L0.as_ptr() as usize).as_usize() as _;
     TTBR1_EL2.set(root1_paddr);
 
     // Flush the entire TLB
