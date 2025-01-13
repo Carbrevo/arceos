@@ -94,7 +94,7 @@ fn psci_call(func: u32, arg0: usize, arg1: usize, arg2: usize) -> Result<(), Psc
 /// Shutdown the whole system, including all CPUs.
 pub fn system_off() -> ! {
     info!("Shutting down...");
-    psci_call(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0).ok();
+    //psci_call(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0).ok();
     warn!("It should shutdown!");
     loop {
         crate::arch::halt();
