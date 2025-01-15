@@ -138,8 +138,13 @@ pub fn test_mem_map() {
     }
 }
 
-pub fn read_table_entry(tbl_paddr:u64, idx: usize) -> u64{
-    let lxentry: u64 = 0;
+fn calc_shift(level:u32) -> u32 {
+    let shift: u32 = 9u32 * ((48u32 - 12u32)/9 - level) + 12;
+
+    shift
+}
+pub fn read_table_entry(tbl_paddr:u64, idx: u32) -> u64{
+    let mut lxentry: u64 = 0;
 
     unsafe {
         asm!("",
@@ -153,20 +158,37 @@ pub fn read_table_entry(tbl_paddr:u64, idx: usize) -> u64{
     lxentry
 }
 
-pub fn print_invl_section(level: i32, start_idx: i32, end_idx: i32, vaddr_off: u64) {
-    info!("")
+pub fn print_invl_section(level: u32, start_idx: u32, end_idx: u32, vaddr_off: u64) {
+    let lxshift = calc_shift(level);
+    let start_vaddr: u64 = vaddr_off;
+    let end_vaddr: u64 = vaddr_off + (end_idx - start_idx) as u64 * (1u64 << lxshift);
+
+    info!("{1:>0$}L{2}[{3:02}]{4:016x} - {5:016x}: {6} UNDEFINED", (level * 3) as usize, "",
+            level, start_idx, start_vaddr, end_vaddr, end_idx - start_idx);
 }
 
-pub fn print_page_table(level: i32, tbl_paddr: u64, vaddr_off: u64) {
-    let idx: i32 = 0;
+pub fn print_section(level: u32, idx: u32, lxentry: u64, vaddr_off: u64) {
+    let lxshift = calc_shift(level);
+    let start_vaddr: u64 = vaddr_off;
+    let end_vaddr: u64 = vaddr_off + (1u64 << lxshift) as u64;
+
+    info!("{1:>0$}L{2}[{3:02}]{4:016x} - {5:016x}: {6:016x}",(level * 3) as usize, "", 
+            level, idx, start_vaddr, end_vaddr, lxentry);
+}
+
+pub fn print_page_table(level: u32, idx:u32, tbl_paddr: u64, vaddr_off: u64) {
+    let lxshift = calc_shift(level - 1);
+
+    info!("{1:>0$}L{2}[{3:02}]{4:016x} - {5:016x}: Table@{6:x}", ((level - 1) * 3) as usize, "", 
+            level - 1, idx, vaddr_off, vaddr_off + (1u64 << lxshift), tbl_paddr);
+
+    let mut idx: u32 = 0;
     loop {
         let mut lxentry: u64 = 0;
-        let calc_shift = |lvl|{ 9u64 * ((48 - 12)/9 - lvl) + 12 };
-        let mut lxshift = calc_shift(level);
+        let lxshift = calc_shift(level);
         let idx_mask = 0x1ffu64;
-        let calc_idx;
-        let mut invl_start_idx: i32 = -1;
-        let mut invl_end_idx: i32;
+        let invl_start_idx: u32;
+        let invl_end_idx: u32;
     
         lxentry = read_table_entry(tbl_paddr, idx);
         if (lxentry & 0x01) == 0 {
@@ -177,18 +199,23 @@ pub fn print_page_table(level: i32, tbl_paddr: u64, vaddr_off: u64) {
             }
 
             if (lxentry & 0x01) == 0 {
-                invl_end_idx = idx;
-                print_invl_section(level, invl_start_idx, invl_end_idx);
+                invl_end_idx = idx + 1;
+                print_invl_section(level, invl_start_idx, invl_end_idx, vaddr_off + (1u64 << lxshift)*(invl_start_idx as u64));
                 break;
             }
-            invl_end_idx = idx - 1;
-            print_invl_section(level, invl_start_idx, invl_end_idx);
+            invl_end_idx = idx;
+            print_invl_section(level, invl_start_idx, invl_end_idx, vaddr_off + (1u64 << lxshift)*(invl_start_idx as u64));
         }
 
-        if (lxentry & 0x02) == 1 {
-            print_page_table(level + 1, lxentry & 0xffff_ffff_f000u64, vaddr_off);
+        if (lxentry & 0x02) == 0x02 && level < 4 {
+            print_page_table(level + 1, idx, lxentry & 0xffff_ffff_f000u64, vaddr_off + (1u64 << lxshift)*(idx as u64));
+            idx += 1;
         } else {
-            print_section(level, idx, lxentry, vaddr_off + (1u64 << lxshift)*idx);
+            print_section(level, idx, lxentry, vaddr_off + (1u64 << lxshift)*(idx as u64));
+            idx += 1;            
+        }
+        if idx > 63 {
+            break;
         }
     }
 }
@@ -196,13 +223,15 @@ pub fn print_page_table(level: i32, tbl_paddr: u64, vaddr_off: u64) {
 pub fn print_page_tables() {
     let mut ttbr0: u64;
     let mut ttbr1: u64;
+    let mut tcr: u64
 
     unsafe { asm!("mrs {0}, ttbr0_el2", out(reg)ttbr0); }
     unsafe { asm!("mrs {0}, ttbr1_el2", out(reg)ttbr1); }
-    info!("ttbr0_el2={ttbr0_el2:x} ttbr1_el2={ttbr1_el2:x}");
+    unsafe { asm!("mrs {0}, tcr_el2", out(reg)tcr); }
+    info!("page table: tcr_el2={tcr:x} ttbr0_el2={ttbr0:x} ttbr1_el2={ttbr1:x}");
 
-    print_page_table(1, ttbr0 & 0xffff_ffff_ffe0u64, 0x0);
-    print_page_table(1, ttbr1 & 0xffff_ffff_ffe0u64, 0xffff_0000_0000);
+    //print_page_table(1, 0, ttbr0 & 0xffff_ffff_ffe0u64, 0x0);
+    print_page_table(1, 1, ttbr1 & 0xffff_ffff_ffe0u64, 0xffff_0000_0000_0000);
 }
 
 
@@ -223,10 +252,15 @@ pub fn kernel_page_table_root() -> PhysAddr {
 pub fn init_memory_management() {
     info!("Initialize virtual memory management...");
 
+    print_page_tables();
+
     let kernel_aspace = new_kernel_aspace().expect("failed to initialize kernel address space");
     debug!("kernel address space init OK: {:#x?}", kernel_aspace);
     KERNEL_ASPACE.init_once(SpinNoIrq::new(kernel_aspace));
     unsafe { axhal::arch::write_page_table_root(kernel_page_table_root()) };
+
+    print_page_tables();
+
     test_mem_map();
 }
 
