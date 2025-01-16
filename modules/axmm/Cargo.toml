@@ -12,6 +12,7 @@ documentation = "https://arceos-org.github.io/arceos/axmm/index.html"
 [dependencies]
 axhal = { workspace = true, features = ["paging"] }
 axconfig = { workspace = true }
+aarch64-cpu = { path = "../../../aarch64-cpu" }
 
 log = "=0.4.21"
 axerrno = "0.1"

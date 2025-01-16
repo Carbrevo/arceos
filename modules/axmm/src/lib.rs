@@ -17,6 +17,7 @@ use kspin::SpinNoIrq;
 use lazyinit::LazyInit;
 use memory_addr::{va, PhysAddr};
 use core::arch::asm;
+use aarch64_cpu::{asm, asm::barrier, registers::*};
 
 static KERNEL_ASPACE: LazyInit<SpinNoIrq<AddrSpace>> = LazyInit::new();
 
@@ -138,6 +139,12 @@ pub fn test_mem_map() {
     }
 }
 
+fn print_cache_info() {
+    let ctr = CTR_EL0.get();
+
+    info!("CTR_EL0={:x}", ctr);
+}
+
 fn calc_shift(level:u32) -> u32 {
     let shift: u32 = 9u32 * ((48u32 - 12u32)/9 - level) + 12;
 
@@ -223,7 +230,7 @@ pub fn print_page_table(level: u32, idx:u32, tbl_paddr: u64, vaddr_off: u64) {
 pub fn print_page_tables() {
     let mut ttbr0: u64;
     let mut ttbr1: u64;
-    let mut tcr: u64
+    let mut tcr: u64;
 
     unsafe { asm!("mrs {0}, ttbr0_el2", out(reg)ttbr0); }
     unsafe { asm!("mrs {0}, ttbr1_el2", out(reg)ttbr1); }
@@ -252,6 +259,7 @@ pub fn kernel_page_table_root() -> PhysAddr {
 pub fn init_memory_management() {
     info!("Initialize virtual memory management...");
 
+    print_cache_info();
     print_page_tables();
 
     let kernel_aspace = new_kernel_aspace().expect("failed to initialize kernel address space");
