@@ -168,7 +168,7 @@ pub fn read_table_entry(tbl_paddr:u64, idx: u32) -> u64{
 pub fn print_invl_section(level: u32, start_idx: u32, end_idx: u32, vaddr_off: u64) {
     let lxshift = calc_shift(level);
     let start_vaddr: u64 = vaddr_off;
-    let end_vaddr: u64 = vaddr_off + (end_idx - start_idx) as u64 * (1u64 << lxshift);
+    let end_vaddr: u64 = vaddr_off.wrapping_add((end_idx - start_idx) as u64 * (1u64 << lxshift));
 
     info!("{1:>0$}L{2}[{3:02}]{4:016x} - {5:016x}: {6} UNDEFINED", (level * 3) as usize, "",
             level, start_idx, start_vaddr, end_vaddr, end_idx - start_idx);
@@ -184,10 +184,11 @@ pub fn print_section(level: u32, idx: u32, lxentry: u64, vaddr_off: u64) {
 }
 
 pub fn print_page_table(level: u32, idx:u32, tbl_paddr: u64, vaddr_off: u64) {
+    const ENTRIES_NUM:u32 = 512;
     let lxshift = calc_shift(level - 1);
 
     info!("{1:>0$}L{2}[{3:02}]{4:016x} - {5:016x}: Table@{6:x}", ((level - 1) * 3) as usize, "", 
-            level - 1, idx, vaddr_off, vaddr_off + (1u64 << lxshift), tbl_paddr);
+            level - 1, idx, vaddr_off, vaddr_off.wrapping_add((1u64 << lxshift)), tbl_paddr);
 
     let mut idx: u32 = 0;
     loop {
@@ -200,7 +201,7 @@ pub fn print_page_table(level: u32, idx:u32, tbl_paddr: u64, vaddr_off: u64) {
         lxentry = read_table_entry(tbl_paddr, idx);
         if (lxentry & 0x01) == 0 {
             invl_start_idx = idx;
-            while (lxentry & 0x01) == 0 && idx < 63 {
+            while (lxentry & 0x01) == 0 && idx < (ENTRIES_NUM - 1) {
                 idx += 1;
                 lxentry = read_table_entry(tbl_paddr, idx);    
             }
@@ -221,7 +222,7 @@ pub fn print_page_table(level: u32, idx:u32, tbl_paddr: u64, vaddr_off: u64) {
             print_section(level, idx, lxentry, vaddr_off + (1u64 << lxshift)*(idx as u64));
             idx += 1;            
         }
-        if idx > 63 {
+        if idx > (ENTRIES_NUM - 1) {
             break;
         }
     }
@@ -238,7 +239,7 @@ pub fn print_page_tables() {
     info!("page table: tcr_el2={tcr:x} ttbr0_el2={ttbr0:x} ttbr1_el2={ttbr1:x}");
 
     //print_page_table(1, 0, ttbr0 & 0xffff_ffff_ffe0u64, 0x0);
-    print_page_table(1, 1, ttbr1 & 0xffff_ffff_ffe0u64, 0xffff_0000_0000_0000);
+    //print_page_table(1, 1, ttbr1 & 0xffff_ffff_ffe0u64, 0xffff_0000_0000_0000);
 }
 
 
@@ -269,7 +270,7 @@ pub fn init_memory_management() {
 
     print_page_tables();
 
-    test_mem_map();
+    //test_mem_map();
 }
 
 /// Initializes kernel paging for secondary CPUs.

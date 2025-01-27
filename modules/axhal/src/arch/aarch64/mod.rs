@@ -84,7 +84,7 @@ pub unsafe fn write_page_table_root(root_paddr: PhysAddr) {
         #[cfg(feature = "hv")]
         {
             // kernel space page table at EL2 use TTBR0_EL2 (0x0000_0000_0000_0000..0x0000_ffff_ffff_ffff)
-            TTBR0_EL2.set(root_paddr.as_usize() as _);
+            TTBR1_EL2.set(root_paddr.as_usize() as _);
         }
         flush_tlb(None);
     }
