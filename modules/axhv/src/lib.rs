@@ -9,8 +9,8 @@ extern crate alloc;
 extern crate axstd as std;
 
 mod hal;
-//mod task;
-//mod vmm;
+mod task;
+mod vmm;
 
 #[no_mangle]
 pub fn start_hv() {
@@ -20,9 +20,9 @@ pub fn start_hv() {
 
     hal::enable_virtualization();
 
- //   vmm::init();
+    vmm::init();
 
- //   vmm::start();
+    vmm::start();
 
     
     info!("VMM shutdown");
